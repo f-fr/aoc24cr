@@ -1,0 +1,23 @@
+name: adventofcode24
+version: 0.1.0
+
+authors:
+  - Frank Fischer <frank-fischer@shadow-soft.de>
+
+description: |
+  My Advent-of-Code-2024 solutions in crystal.
+
+# dependencies:
+#   pg:
+#     github: will/crystal-pg
+#     version: "~> 0.5"
+
+# development_dependencies:
+#   webmock:
+#     github: manastech/webmock.cr
+
+license: GPLv3
+
+targets:
+  aoc24:
+    main: src/aoc24.cr
