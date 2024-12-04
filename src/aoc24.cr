@@ -27,28 +27,40 @@ days = [] of DayRunner
 
 # collect all runner methods
 {% for m in @top_level.methods %}
-  {% if m.name.id.stringify =~ /^run_day(\d+)$/ %}
-    class Day{{m.name}}Runner < DayRunner
+  {% name = m.name %}
+  {% if name =~ /^run_day(\d{2})(?:_\d+)?$/ %}
+    {% day = name[7..7] == "0" ? name[8..8] : name[7..8] %}
+    {% version = name =~ /\d+_\d+$/ ? name[10..] : 1 %}
+    class Day{{day}}v{{version}}Runner < DayRunner
       def day : Int32
-        {{m.name.id.stringify}}[/0*(\d+)/,1].to_i
+        {{day}}.to_i
+      end
+
+      def version : Int32
+        {{version}}.to_i
       end
 
       def run(input : IO) : {Int64, Int64}
-        {{m.name}}(input)
+        {{name}}(input)
       end
     end
-    days << Day{{m.name}}Runner.new
+    days << Day{{day}}v{{version}}Runner.new
   {% end %}
 {% end %}
 
-days.sort_by!(&.day)
+days.sort_by! { |r| {r.day, r.version}.as({Int32, Int32}) }
 
 total_time = 0
 days.each do |runner|
   File.open("input/%02d/input1.txt" % {runner.day}, "r") do |file|
     result = {0i64, 0i64}
     bm = Benchmark.measure { result = runner.run(file) }
-    puts "day: %2d     part1: %10d  part2: %10d   time:%.3f" % {runner.day, result[0], result[1], bm.real}
+    puts "day: %2d %3s part1: %10d  part2: %10d   time:%.3f" % {
+      runner.day,
+      runner.version == 1 ? "" : "v#{runner.version}",
+      result[0], result[1],
+      bm.real,
+    }
     total_time += bm.real
   end
 end
