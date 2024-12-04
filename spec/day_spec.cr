@@ -14,7 +14,7 @@
 # along with this program.  If not, see  <http://www.gnu.org/licenses/>
 
 require "spec"
-require "../src/days.cr"
+require "../src/days/*"
 
 {% for m in @top_level.methods %}
   {% name = m.name %}
