@@ -24,17 +24,12 @@ def run_day04(input) : {Int64, Int64}
     (1...grid[i].size - 1).each do |j|
       (-1..1).each do |dx|
         (-1..1).each do |dy|
-          part1 += 1 if grid[i][j] == 'X' &&
-                        grid[i + dx][j + dy] == 'M' &&
-                        grid[i + 2*dx][j + 2*dy] == 'A' &&
-                        grid[i + 3*dx][j + 3*dy] == 'S'
+          part1 += 1 if "XMAS".each_char.with_index.all? { |c, d| grid[i + d*dx][j + d*dy] == c }
         end
       end
       part2 += 1 if grid[i][j] == 'A' &&
-                    ((grid[i - 1][j - 1] == 'M' && grid[i + 1][j + 1] == 'S') ||
-                    (grid[i - 1][j - 1] == 'S' && grid[i + 1][j + 1] == 'M')) &&
-                    ((grid[i - 1][j + 1] == 'M' && grid[i + 1][j - 1] == 'S') ||
-                    (grid[i - 1][j + 1] == 'S' && grid[i + 1][j - 1] == 'M'))
+                    {-1, 1}.any? { |d| grid[i + d][j + d] == 'M' && grid[i - d][j - d] == 'S' } &&
+                    {-1, 1}.any? { |d| grid[i - d][j + d] == 'M' && grid[i + d][j - d] == 'S' }
     end
   end
   {part1, part2}
