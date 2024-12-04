@@ -43,10 +43,13 @@ days = [] of DayRunner
 
 days.sort_by!(&.day)
 
+total_time = 0
 days.each do |runner|
   File.open("input/%02d/input1.txt" % {runner.day}, "r") do |file|
     result = {0i64, 0i64}
     bm = Benchmark.measure { result = runner.run(file) }
     puts "day: %2d     part1: %10d  part2: %10d   time:%.3f" % {runner.day, result[0], result[1], bm.real}
+    total_time += bm.real
   end
 end
+puts "Total time: %.3f" % {total_time}
