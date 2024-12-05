@@ -50,7 +50,7 @@ days = [] of DayRunner
 
 days.sort_by! { |r| {r.day, r.version}.as({Int32, Int32}) }
 
-total_time = 0
+times = Hash(Int32, Float64).new(Float64::INFINITY)
 days.each do |runner|
   File.open("input/%02d/input1.txt" % {runner.day}, "r") do |file|
     result = {0i64, 0i64}
@@ -61,7 +61,8 @@ days.each do |runner|
       result[0], result[1],
       bm.real,
     }
-    total_time += bm.real
+    times.update(runner.day) { |v| {v, bm.real}.min }
   end
 end
+total_time = times.each_value.sum
 puts "Total time: %.3f" % {total_time}
