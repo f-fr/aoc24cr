@@ -18,7 +18,7 @@ def run_day05(input) : {Int64, Int64}
   edges = lines.take_while(&.empty?.!).map(&.split('|')).map { |a| {a[0].to_i, a[1].to_i} }.to_set
 
   part1, part2 = 0_i64, 0_i64
-  lines.each.map(&.split(',').map(&.to_i)).each do |nums|
+  lines.map(&.split(',').map(&.to_i)).each do |nums|
     if nums.each_cons_pair.none? { |u, v| edges.includes?({v, u}) }
       part1 += nums[nums.size // 2]
     else
@@ -44,7 +44,7 @@ def run_day05_2(input) : {Int64, Int64}
   end
 
   part1, part2 = 0_i64, 0_i64
-  lines.each.map(&.split(',').map(&.to_i)).each do |nums|
+  lines.map(&.split(',').map(&.to_i)).each do |nums|
     if nums.each_cons_pair.none? { |u, v| edges[v][u] }
       part1 += nums[nums.size // 2]
     else
