@@ -21,13 +21,14 @@ def run_day05(input) : {Int64, Int64}
   lines.each.map(&.split(',').map(&.to_i)).each do |nums|
     if nums.each_cons_pair.none? { |u, v| edges.includes?({v, u}) }
       part1 += nums[nums.size // 2]
-    elsif nums.sort! do |u, v|
-            case
-            when u == v                  then 0
-            when edges.includes?({v, u}) then 1
-            else                              -1
-            end
-          end
+    else
+      nums.sort! do |u, v|
+        case
+        when u == v                  then 0
+        when edges.includes?({v, u}) then 1
+        else                              -1
+        end
+      end
       part2 += nums[nums.size // 2]
     end
   end
