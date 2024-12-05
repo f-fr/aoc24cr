@@ -24,7 +24,36 @@ def run_day04(input) : {Int64, Int64}
     (1...grid[i].size - 1).each do |j|
       (-1..1).each do |dx|
         (-1..1).each do |dy|
-          part1 += 1 if "XMAS".each_char.with_index.all? { |c, d| grid[i + d*dx][j + d*dy] == c }
+          part1 += 1 if grid[i][j] == 'X' &&
+                        grid[i + dx][j + dy] == 'M' &&
+                        grid[i + 2*dx][j + 2*dy] == 'A' &&
+                        grid[i + 3*dx][j + 3*dy] == 'S'
+        end
+      end
+      part2 += 1 if grid[i][j] == 'A' &&
+                    ((grid[i - 1][j - 1] == 'M' && grid[i + 1][j + 1] == 'S') ||
+                    (grid[i - 1][j - 1] == 'S' && grid[i + 1][j + 1] == 'M')) &&
+                    ((grid[i - 1][j + 1] == 'M' && grid[i + 1][j - 1] == 'S') ||
+                    (grid[i - 1][j + 1] == 'S' && grid[i + 1][j - 1] == 'M'))
+    end
+  end
+  {part1, part2}
+end
+
+# simplified version, but much slower
+def run_day04_2(input) : {Int64, Int64}
+  grid = input.each_line.map { |l| ".#{l}." }.to_a
+  grid.unshift("." * grid[0].size)
+  grid.push("." * grid[0].size)
+
+  part1 = 0_i64
+  part2 = 0_i64
+  (1...grid.size - 1).each do |i|
+    (1...grid[i].size - 1).each do |j|
+      (-1..1).each do |dx|
+        (-1..1).each do |dy|
+          # this line is actually much slower than the direct tests in version 1
+          part1 += 1 if {'X', 'M', 'A', 'S'}.each_with_index.all? { |c, d| grid[i + d*dx][j + d*dy] == c }
         end
       end
       part2 += 1 if grid[i][j] == 'A' &&
