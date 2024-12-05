@@ -31,3 +31,27 @@ def run_day02(input) : {Int64, Int64}
   end
   {part1, part2}
 end
+
+# dynamic programming version
+def run_day02_2(input) : {Int64, Int64}
+  part1 = 0_i64
+  part2 = 0_i64
+  input.each_line do |line|
+    line = line.split.map(&.to_i)
+    {-1, 1}.each do |d|
+      a_no_miss = true
+      a_former_miss = false
+      a_last_miss = true
+      (1...line.size).each do |i|
+        step_ok = 1 <= d * (line[i] - line[i - 1]) <= 3
+        a_former_miss = (a_former_miss && step_ok) || (a_last_miss && (i == 1 || 1 <= d * (line[i] - line[i - 2]) <= 3))
+        a_last_miss = a_no_miss
+        a_no_miss = a_no_miss && step_ok
+        break unless a_no_miss || a_last_miss || a_former_miss
+      end
+      part1 += 1 if a_no_miss
+      part2 += 1 if a_no_miss || a_last_miss || a_former_miss
+    end
+  end
+  {part1, part2}
+end
