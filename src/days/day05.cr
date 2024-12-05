@@ -35,3 +35,29 @@ def run_day05(input) : {Int64, Int64}
 
   {part1, part2}
 end
+
+def run_day05_2(input) : {Int64, Int64}
+  lines = input.each_line
+  edges = Array.new(100) { Array.new(100, false) }
+  lines.take_while(&.empty?.!).map(&.split('|')).each do |u|
+    edges[u[0].to_i][u[1].to_i] = true
+  end
+
+  part1, part2 = 0_i64, 0_i64
+  lines.each.map(&.split(',').map(&.to_i)).each do |nums|
+    if nums.each_cons_pair.none? { |u, v| edges[v][u] }
+      part1 += nums[nums.size // 2]
+    else
+      nums.sort! do |u, v|
+        case
+        when u == v      then 0
+        when edges[v][u] then 1
+        else                  -1
+        end
+      end
+      part2 += nums[nums.size // 2]
+    end
+  end
+
+  {part1, part2}
+end
