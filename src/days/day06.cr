@@ -29,14 +29,14 @@ def step(p, d)
   end
 end
 
-def run_day06(input) : {Int64, Int64}
-  part1 = 0_i64
-  part2 = 0_i64
-
+def read_grid(input)
   grid = input.each_line.map { |l| [' '] + l.chars.to_a + [' '] }.to_a
   grid.unshift([' '] * grid[0].size)
   grid.push([' '] * grid[0].size)
+  grid
+end
 
+def prepare_steps(grid)
   n = grid.size
   m = grid[0].size
 
@@ -44,7 +44,6 @@ def run_day06(input) : {Int64, Int64}
   gright = Array.new(n) { Array.new(m, 0) }
   gdown = Array.new(n) { Array.new(m, 0) }
   gleft = Array.new(n) { Array.new(m, 0) }
-  flags = Array.new(n) { Array.new(m, 0) }
 
   # for each field we store the next obstacle (or boundary) in that direction
   (1...n - 1).each do |i|
@@ -85,18 +84,38 @@ def run_day06(input) : {Int64, Int64}
     end
   end
 
-  s = nil
+  {gup, gright, gdown, gleft}
+end
+
+def find_start(grid)
+  n = grid.size
+  m = grid[0].size
+
   (1..n - 2).each do |i|
     (1..m - 2).each do |j|
       case grid[i][j]
-      when '<' then s = {i, j, Direction::Left}; break
-      when '^' then s = {i, j, Direction::Up}; break
-      when '>' then s = {i, j, Direction::Right}; break
-      when 'v' then s = {i, j, Direction::Down}; break
+      when '<' then return {i, j, Direction::Left}
+      when '^' then return {i, j, Direction::Up}
+      when '>' then return {i, j, Direction::Right}
+      when 'v' then return {i, j, Direction::Down}
       end
     end
   end
-  raise "Starting position not found" unless s
+  nil
+end
+
+def run_day06(input) : {Int64, Int64}
+  part1 = 0_i64
+  part2 = 0_i64
+
+  grid = read_grid(input)
+  n = grid.size
+  m = grid[0].size
+
+  gup, gright, gdown, gleft = prepare_steps(grid)
+  flags = Array.new(n) { Array.new(m, 0) }
+
+  s = find_start(grid) || raise "Starting position not found"
 
   p = s[0..1]
   d = s[2]
@@ -159,6 +178,106 @@ def run_day06(input) : {Int64, Int64}
         end
       end
       d = Direction.new((d.value + 1) % 4)
+    end
+  end
+
+  {part1, part2}
+end
+
+def run_day06_2(input) : {Int64, Int64}
+  part1 = 0_i64
+  part2 = 0_i64
+
+  grid = read_grid(input)
+  n = grid.size
+  m = grid[0].size
+
+  gup, gright, gdown, gleft = prepare_steps(grid)
+  flags = Array.new(n) { Array.new(m, 0) }
+
+  s = find_start(grid) || raise "Starting position not found"
+
+  p = s[0..1]
+  d = s[2]
+  path = [] of { {Int32, Int32}, Direction }
+
+  while grid[p[0]][p[1]] != ' '
+    if grid[p[0]][p[1]] != 'X'
+      grid[p[0]][p[1]] = 'X'
+      part1 += 1
+    end
+    q = step(p, d)
+    case grid[q[0]][q[1]]
+    when '#' then d = Direction.new((d.value + 1) % 4)
+    when ' ' then break
+    else
+      p = q # actually do the step
+      flags[p[0]][p[1]] |= 1 << d.value
+      path << {p, d}
+    end
+  end
+
+  grid[1..n - 2].each do |row|
+    (1..m - 2).each do |j|
+      if row[j] != '#'
+        row[j] = '.'
+      end
+    end
+  end
+
+  visited = Array({ {Int32, Int32}, Direction }).new(path.size)
+  visited << path[-1] # ensure the last square is reset
+
+  (path.size - 1).downto(1) do |k|
+    # reset flags of previous iteration
+    visited.each { |p, d| flags[p[0]][p[1]] &= ~(1 << d.value) }
+    visited.clear
+
+    pnew = path[k][0]
+    p, d = path[k - 1]
+
+    flags[p[0]][p[1]] &= ~(1 << d.value)
+
+    next if pnew == s
+    next if flags[pnew[0]][pnew[1]] != 0
+
+    while grid[p[0]][p[1]] != ' '
+      if flags[p[0]][p[1]] & (1 << d.value) != 0
+        part2 += 1
+        break
+      end
+      v = {p, d}
+      case d
+      in Direction::Up
+        if (p[1] == pnew[1]) && (gup[p[0]][p[1]] <= pnew[0] < p[0])
+          p = {pnew[0] + 1, p[1]}
+        else
+          p = {gup[p[0]][p[1]], p[1]}
+        end
+      in Direction::Right
+        if (p[0] == pnew[0]) && (p[1] < pnew[1] <= gright[p[0]][p[1]])
+          p = {p[0], pnew[1] - 1}
+        else
+          p = {p[0], gright[p[0]][p[1]]}
+        end
+      in Direction::Down
+        if (p[1] == pnew[1]) && (p[0] < pnew[0] <= gdown[p[0]][p[1]])
+          p = {pnew[0] - 1, p[1]}
+        else
+          p = {gdown[p[0]][p[1]], p[1]}
+        end
+      in Direction::Left
+        if (p[0] == pnew[0]) && (gleft[p[0]][p[1]] <= pnew[1] < p[1])
+          p = {p[0], pnew[1] + 1}
+        else
+          p = {p[0], gleft[p[0]][p[1]]}
+        end
+      end
+      d = Direction.new((d.value + 1) % 4)
+      if p != v[0]
+        flags[v[0][0]][v[0][1]] |= 1 << v[1].value
+        visited << v
+      end
     end
   end
 
