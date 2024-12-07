@@ -55,7 +55,7 @@ days.each do |runner|
   File.open("input/%02d/input1.txt" % {runner.day}, "r") do |file|
     result = {0i64, 0i64}
     bm = Benchmark.measure { result = runner.run(file) }
-    puts "day: %2d %3s part1: %10d  part2: %10d   time:%.3f" % {
+    puts "day: %2d %3s part1: %16d  part2: %16d   time:%.3f" % {
       runner.day,
       runner.version == 1 ? "" : "v#{runner.version}",
       result[0], result[1],
