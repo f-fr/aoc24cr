@@ -41,18 +41,12 @@ def run_day08(input) : {Int64, Int64}
         dy = antennas[j][2] - antennas[i][2]
         px = antennas[j][1] + dx
         py = antennas[j][2] + dy
-        if 0 <= px < grid.size && 0 <= py < grid[0].size && !pnts.includes?({px, py})
-          pnts.add({px, py})
-          part1 += 1
-        end
+        part1 += 1 if 0 <= px < grid.size && 0 <= py < grid[0].size && pnts.add?({px, py})
 
         px = antennas[j][1]
         py = antennas[j][2]
         while 0 <= px < grid.size && 0 <= py < grid[0].size
-          if !pnts2.includes?({px, py})
-            pnts2.add({px, py})
-            part2 += 1
-          end
+          part2 += 1 if pnts2.add?({px, py})
           px += dx
           py += dy
         end
