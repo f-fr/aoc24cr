@@ -44,8 +44,12 @@ def run_day07(input) : {Int64, Int64}
     x, *ns = line.split(/[: ]/, remove_empty: true)
     x = x.to_i64
     ns = ns.map(&.to_i)
-    part1 += x if check(x, ns, ns.size)
-    part2 += x if check2(x, ns, ns.size)
+    if check(x, ns, ns.size)
+      part1 += x
+      part2 += x
+    elsif check2(x, ns, ns.size)
+      part2 += x
+    end
   end
 
   {part1, part2}
