@@ -16,7 +16,7 @@
 require "../priqueue"
 
 def value(fileid, pos : Int64, len) : Int64
-  fileid.to_i64 * (((pos + len) * (pos + len - 1)) // 2 - (pos * (pos - 1)) // 2)
+  fileid.to_i64 * len * (len - 1 + 2 * pos) // 2
 end
 
 def run_day09(input) : {Int64, Int64}
