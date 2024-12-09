@@ -16,9 +16,10 @@
 class PriQueue(T)
   alias Item = Int32
 
-  @heap = [] of Int32
+  @heap : Array(T)
 
-  def initialize
+  def initialize(*, capacity = 0)
+    @heap = Array(T).new(capacity)
   end
 
   def empty? : Bool

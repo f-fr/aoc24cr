@@ -51,7 +51,7 @@ def run_day09(input) : {Int64, Int64}
   part1 += value(j // 2, pos, nums[j])
 
   # collect all gap sizes in pri queues
-  gaps = Array.new(10) { PriQueue(Int32).new }
+  gaps = Array.new(10) { PriQueue(Int32).new(capacity: 1024) }
   i, pos = 0, 0
   while i < nums2.size
     pos += nums2[i]
