@@ -14,8 +14,6 @@
 # along with this program.  If not, see  <http://www.gnu.org/licenses/>
 
 class PriQueue(T)
-  alias Item = Int32
-
   @heap : Array(T)
 
   def initialize(*, capacity = 0)
