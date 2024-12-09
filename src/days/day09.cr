@@ -76,9 +76,9 @@ def run_day09(input) : {Int64, Int64}
       gaps[best_gap].pop?
       # move to gap
       gaps[best_gap - nums2[j]].push(best_pos + nums2[j]) if best_gap > nums2[j]
-      part2 += value(j // 2, best_pos.to_i64, nums2[j].to_i64)
+      part2 += value(j // 2, best_pos, nums2[j])
     else
-      part2 += value(j // 2, pos.to_i64, nums2[j].to_i64)
+      part2 += value(j // 2, pos, nums2[j])
     end
 
     pos -= nums2[j - 1] if j > 0
