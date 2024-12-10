@@ -68,11 +68,11 @@ def run_day09(input) : {Int64, Int64}
     pos -= nums2[j]
     best = (nums2[j]..9).compact_map do |i|
       if (min = gaps[i].min?) && min < pos
-        {i, min}
+        {min, i}
       end
-    end.min_by?(&.[1])
+    end.min?
     if best
-      best_gap, best_pos = best
+      best_pos, best_gap = best
       gaps[best_gap].pop?
       # move to gap
       gaps[best_gap - nums2[j]].push(best_pos + nums2[j]) if best_gap > nums2[j]
