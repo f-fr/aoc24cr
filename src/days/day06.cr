@@ -30,7 +30,7 @@ def step(p, d)
 end
 
 def read_grid(input)
-  grid = input.each_line.map { |l| [' '] + l.chars.to_a + [' '] }.to_a
+  grid = input.each_line.map { |l| [' '] + l.chars + [' '] }.to_a
   grid.unshift([' '] * grid[0].size)
   grid.push([' '] * grid[0].size)
   grid

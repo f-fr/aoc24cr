@@ -17,7 +17,7 @@ def run_day08(input) : {Int64, Int64}
   part1 = 0_i64
   part2 = 0_i64
 
-  grid = input.each_line.map(&.chars.to_a).to_a
+  grid = input.each_line.map(&.chars).to_a
 
   antennas = grid.each_with_index.flat_map do |row, i|
     row.each_with_index.select { |c, _| c != '.' }.map { |c, j| {c, i, j} }

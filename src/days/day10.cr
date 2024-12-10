@@ -19,7 +19,7 @@ def run_day10(input) : {Int64, Int64}
   part1 = 0_i64
   part2 = 0_i64
 
-  grid = input.each_line.map { |l| [' '] + l.chars.to_a + [' '] }.to_a
+  grid = input.each_line.map { |l| [' '] + l.chars + [' '] }.to_a
   grid.unshift([' '] * grid[0].size)
   grid.push([' '] * grid[0].size)
 
