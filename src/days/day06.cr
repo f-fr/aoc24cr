@@ -48,7 +48,7 @@ def prepare_steps(grid)
   # for each field we store the next obstacle (or boundary) in that direction
   (1...n - 1).each do |i|
     k = 0
-    1.upto(m - 2).each do |j|
+    1.upto(m - 2) do |j|
       if grid[i][j] == '#'
         k = j + 1
       else
@@ -56,7 +56,7 @@ def prepare_steps(grid)
       end
     end
     k = m - 1
-    (m - 2).downto(1).each do |j|
+    (m - 2).downto(1) do |j|
       if grid[i][j] == '#'
         k = j - 1
       else
@@ -67,7 +67,7 @@ def prepare_steps(grid)
 
   (1...m - 1).each do |j|
     k = 0
-    1.upto(n - 2).each do |i|
+    1.upto(n - 2) do |i|
       if grid[i][j] == '#'
         k = i + 1
       else
@@ -75,7 +75,7 @@ def prepare_steps(grid)
       end
     end
     k = n - 1
-    (n - 2).downto(1).each do |i|
+    (n - 2).downto(1) do |i|
       if grid[i][j] == '#'
         k = i - 1
       else
