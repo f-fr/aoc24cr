@@ -58,7 +58,7 @@ days.each do |runner|
     mem = Benchmark.memory {
       time = Benchmark.measure { result = runner.run(file) }.real
     }
-    puts "day: %2d %3s part1: %16d  part2: %16d  time:%.3f  mem:%8.2fK" % {
+    puts "day: %2d %-3s part1: %16d  part2: %16d  time:%.3f  mem:%8.2fK" % {
       runner.day,
       runner.version == 1 ? "" : "v#{runner.version}",
       result[0], result[1],
