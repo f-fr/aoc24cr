@@ -40,6 +40,8 @@ def run_day04(input) : {Int64, Int64}
   {part1, part2}
 end
 
+XMAS = {'X', 'M', 'A', 'S'}
+
 # simplified version, but much slower
 def run_day04_2(input) : {Int64, Int64}
   grid = input.each_line.map { |l| ".#{l}." }.to_a
@@ -53,7 +55,7 @@ def run_day04_2(input) : {Int64, Int64}
       (-1..1).each do |dx|
         (-1..1).each do |dy|
           # this line is actually much slower than the direct tests in version 1
-          part1 += 1 if {'X', 'M', 'A', 'S'}.each_with_index.all? { |c, d| grid[i + d*dx][j + d*dy] == c }
+          part1 += 1 if (0...4).all? { |d| grid[i + d*dx][j + d*dy] == XMAS[d] }
         end
       end
       part2 += 1 if grid[i][j] == 'A' &&
