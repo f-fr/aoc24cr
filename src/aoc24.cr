@@ -54,14 +54,18 @@ times = Hash(Int32, Float64).new(Float64::INFINITY)
 days.each do |runner|
   File.open("input/%02d/input1.txt" % {runner.day}, "r") do |file|
     result = {0i64, 0i64}
-    bm = Benchmark.measure { result = runner.run(file) }
-    puts "day: %2d %3s part1: %16d  part2: %16d   time:%.3f" % {
+    time = 0.0
+    mem = Benchmark.memory {
+      time = Benchmark.measure { result = runner.run(file) }.real
+    }
+    puts "day: %2d %3s part1: %16d  part2: %16d  time:%.3f  mem:%8.2fK" % {
       runner.day,
       runner.version == 1 ? "" : "v#{runner.version}",
       result[0], result[1],
-      bm.real,
+      time,
+      mem / 1024,
     }
-    times.update(runner.day) { |v| {v, bm.real}.min }
+    times.update(runner.day) { |v| {v, time}.min }
   end
 end
 total_time = times.each_value.sum
