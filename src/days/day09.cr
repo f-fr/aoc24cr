@@ -25,49 +25,53 @@ def run_day09(input) : {Int64, Int64}
 
   input = input.gets || raise "Unexpected end of input"
   nums = input.each_char.map(&.to_i.- '0'.to_i).to_a
-  nums2 = nums.dup
 
   i, j, pos = 0, nums.size - 1, 0
+  y = nums[j]
   while i < j
     # add current left file block
     part1 += value(i // 2, pos, nums[i])
     pos += nums[i]
-    nums[i] = 0
     # go to space
     i += 1
-    while nums[i] > 0
+    x = nums[i]
+    while x > 0
       # copy from right to space
-      k = {nums[i], nums[j]}.min
+      k = {x, y}.min
       part1 += value(j // 2, pos, k)
       pos += k
-      nums[i] -= k
-      nums[j] -= k
-      j -= 2 if nums[j] == 0 # skip space
+      x -= k
+      y -= k
+      if y == 0
+        j -= 2 # skip space
+        break if j <= i
+        y = nums[j]
+      end
     end
     # next block
     i += 1
   end
   # remaining file blocks stay at right end
-  part1 += value(j // 2, pos, nums[j])
+  part1 += value(j // 2, pos, y)
 
   # collect all gap sizes in pri queues
   gaps = Array.new(10) { PriQueue(Int32).new(capacity: 1024) }
   i, pos = 0, 0
-  while i < nums2.size
-    pos += nums2[i]
+  while i < nums.size
+    pos += nums[i]
     i += 1
-    if i < nums2.size && nums2[i] > 0
-      gaps[nums2[i]].push(pos)
-      pos += nums2[i]
+    if i < nums.size && nums[i] > 0
+      gaps[nums[i]].push(pos)
+      pos += nums[i]
     end
     i += 1
   end
 
-  j = nums2.size - 1
+  j = nums.size - 1
   while j >= 0
-    pos -= nums2[j]
+    pos -= nums[j]
     best_pos, best_gap = pos, nil
-    (nums2[j]..9).each do |i|
+    (nums[j]..9).each do |i|
       if (min = gaps[i].min?) && min < best_pos
         best_pos, best_gap = min, i
       end
@@ -75,13 +79,13 @@ def run_day09(input) : {Int64, Int64}
     if best_gap
       gaps[best_gap].pop?
       # move to gap
-      gaps[best_gap - nums2[j]].push(best_pos + nums2[j]) if best_gap > nums2[j]
-      part2 += value(j // 2, best_pos, nums2[j])
+      gaps[best_gap - nums[j]].push(best_pos + nums[j]) if best_gap > nums[j]
+      part2 += value(j // 2, best_pos, nums[j])
     else
-      part2 += value(j // 2, pos, nums2[j])
+      part2 += value(j // 2, pos, nums[j])
     end
 
-    pos -= nums2[j - 1] if j > 0
+    pos -= nums[j - 1] if j > 0
     j -= 2
   end
 
