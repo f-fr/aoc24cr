@@ -34,15 +34,16 @@ class PriQueue(T)
   end
 
   private def upheap(idx : Int32)
+    heap = @heap
     i = idx
-    value = @heap[idx]
+    value = heap[idx]
     while i > 0
       j = (i - 1) // 2
-      break if @heap[j] <= value
-      @heap[i] = @heap[j]
+      break if heap[j] <= value
+      heap[i] = heap[j]
       i = j
     end
-    @heap[i] = value
+    heap[i] = value
   end
 
   def min? : T?
@@ -50,23 +51,24 @@ class PriQueue(T)
   end
 
   def pop? : T?
-    return nil if @heap.empty?
+    heap = @heap
+    return nil if heap.empty?
 
-    value = @heap[0]
+    value = heap[0]
 
-    last = @heap.pop
-    unless @heap.empty?
+    last = heap.pop
+    unless heap.empty?
       i = 0
       loop do
         j = 2*i + 1
         k = j + 1
-        break if j >= @heap.size
-        j = k if k < @heap.size && @heap[k] < @heap[j]
-        break if @heap[j] >= last
-        @heap[i] = @heap[j]
+        break if j >= heap.size
+        j = k if k < heap.size && heap[k] < heap[j]
+        break if heap[j] >= last
+        heap[i] = heap[j]
         i = j
       end
-      @heap[i] = last
+      heap[i] = last
     end
 
     value
