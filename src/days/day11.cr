@@ -48,8 +48,8 @@ def run_day11(input) : {Int64, Int64}
   part1 = 0_i64
 
   memo = Hash(Int64, {Int64, Int64}).new
-  cnts = Hash(Int64, Int64).new { |h, k| h[k] = 0_i64 }
-  cnts2 = Hash(Int64, Int64).new { |h, k| h[k] = 0_i64 }
+  cnts = Hash(Int64, Int64).new(0)
+  cnts2 = Hash(Int64, Int64).new(0)
   (input.gets || "").split(/\s+/).each { |x| cnts.update(x.to_i64, &.+ 1) }
 
   1.upto(75) do |i|
