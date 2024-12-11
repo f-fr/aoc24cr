@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see  <http://www.gnu.org/licenses/>
 
-def check(x, ns, n, concat = false)
+private def check(x, ns, n, concat = false)
   return ns[0] == x if n == 1
   return false if x < ns[n - 1]
   return true if x % ns[n - 1] == 0 && check(x // ns[n - 1], ns, n - 1, concat)

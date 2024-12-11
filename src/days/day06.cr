@@ -13,14 +13,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see  <http://www.gnu.org/licenses/>
 
-enum Direction
+private enum Direction
   Up
   Right
   Down
   Left
 end
 
-def step(p, d)
+private def step(p, d)
   case d
   in Direction::Up    then {p[0] - 1, p[1]}
   in Direction::Right then {p[0], p[1] + 1}
@@ -29,14 +29,14 @@ def step(p, d)
   end
 end
 
-def read_grid(input)
+private def read_grid(input)
   grid = input.each_line.map { |l| [' '] + l.chars + [' '] }.to_a
   grid.unshift([' '] * grid[0].size)
   grid.push([' '] * grid[0].size)
   grid
 end
 
-def prepare_steps(grid)
+private def prepare_steps(grid)
   n = grid.size
   m = grid[0].size
 
@@ -87,7 +87,7 @@ def prepare_steps(grid)
   {gup, gright, gdown, gleft}
 end
 
-def find_start(grid)
+private def find_start(grid)
   n = grid.size
   m = grid[0].size
 

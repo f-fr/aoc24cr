@@ -15,7 +15,7 @@
 
 require "../priqueue"
 
-def split(memo : Hash(Int64, {Int64, Int64}), x) : {Int64, Int64}?
+private def split(memo : Hash(Int64, {Int64, Int64}), x) : {Int64, Int64}?
   if r = memo[x]?
     return r[0] == 0 ? nil : r
   end

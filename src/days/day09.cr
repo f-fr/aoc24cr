@@ -15,7 +15,7 @@
 
 require "../priqueue"
 
-def value(fileid, pos : Int64, len) : Int64
+private def value(fileid, pos : Int64, len) : Int64
   fileid.to_i64 * len * (len - 1 + 2 * pos) // 2
 end
 
