@@ -13,8 +13,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see  <http://www.gnu.org/licenses/>
 
-require "../priqueue"
-
 def run_day10(input) : {Int64, Int64}
   part1 = 0_i64
   part2 = 0_i64
