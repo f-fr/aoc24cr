@@ -51,7 +51,9 @@ days = [] of DayRunner
 days.sort_by! { |r| {r.day, r.version}.as({Int32, Int32}) }
 
 times = Hash(Int32, Float64).new(Float64::INFINITY)
+day = ARGV.shift?.try(&.to_i)
 days.each do |runner|
+  next unless day.nil? || runner.day == day
   File.open("input/%02d/input1.txt" % {runner.day}, "r") do |file|
     result = {0i64, 0i64}
     time = 0.0
