@@ -33,11 +33,11 @@ def run_day13(input) : {Int64, Int64}
   part2 = 0_i64
 
   loop do
-    break unless a = input.gets.try(&.split(/[ :,+=]/, remove_empty: true))
+    break unless a = input.gets.try(&.split(/[ :,+=]+/))
     a = {a[3].to_i64, a[5].to_i64}
-    break unless b = input.gets.try(&.split(/[ :,+=]/, remove_empty: true))
+    break unless b = input.gets.try(&.split(/[ :,+=]+/))
     b = {b[3].to_i64, b[5].to_i64}
-    break unless c = input.gets.try(&.split(/[ :,+=]/, remove_empty: true))
+    break unless c = input.gets.try(&.split(/[ :,+=]+/))
     c = {c[2].to_i64, c[4].to_i64}
 
     input.gets # empty line
