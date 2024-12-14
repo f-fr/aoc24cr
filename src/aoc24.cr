@@ -16,6 +16,7 @@
 # along with this program.  If not, see  <http://www.gnu.org/licenses/>
 
 require "benchmark"
+require "./aoc"
 require "./days/*"
 
 abstract class DayRunner
