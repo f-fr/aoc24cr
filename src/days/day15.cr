@@ -13,35 +13,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see  <http://www.gnu.org/licenses/>
 
-struct Pnt
-  property i : Int32
-  property j : Int32
-
-  def initialize(@i : Int32, @j : Int32)
-  end
-
-  def self.[](i : Int32, j : Int32)
-    new(i, j)
-  end
-
-  def <=>(other : Pnt)
-    i == other.i && j == other.j
-  end
-
-  def +(other : Pnt)
-    Pnt.new(i + other.i, j + other.j)
-  end
-
-  def -(other : Pnt)
-    Pnt.new(i - other.i, j - other.j)
-  end
-
-  Up    = Pnt[-1, 0]
-  Right = Pnt[0, 1]
-  Down  = Pnt[1, 0]
-  Left  = Pnt[0, -1]
-end
-
 def run_day15(input) : {Int64, Int64}
   lines = input.each_line
   grid = lines.take_while(&.empty?.!).map(&.chars).to_a
@@ -178,6 +149,114 @@ def run_day15(input) : {Int64, Int64}
       part2 += 100 * i + j if c == '['
     end
   end
+
+  {part1, part2}
+end
+
+def run_day15_2(input) : {Int64, Int64}
+  grid = Grid.read(input)
+  moves = input.each_line.join
+
+  n = grid.count(&.[2].== 'O')
+  pos = grid.find('@') || raise "No start position '@' found"
+  grid[pos] = '.'
+
+  pos2 = Pnt[pos.i, pos.j * 2]
+  grid2 = Grid.new(grid.each_row.map do |row|
+    row.flat_map do |c|
+      case c
+      when '#' then {'#', '#'}.each
+      when 'O' then {'[', ']'}.each
+      else          {'.', '.'}.each
+      end
+    end
+  end.to_a)
+
+  moves.each_char do |c|
+    dir = case c
+          when '^' then Pnt::Up
+          when '>' then Pnt::Right
+          when 'v' then Pnt::Down
+          when '<' then Pnt::Left
+          else          next
+          end
+    oth = pos + dir
+    while grid[oth] == 'O'
+      oth += dir
+    end
+    if grid[oth] == '.'
+      pos += dir
+      grid[pos] = '.'
+      grid[oth] = 'O' if oth != pos
+    end
+  end
+
+  part1 = grid.sum(0_i64) { |i, j, c| c == 'O' ? 100 * i + j : 0 }
+
+  grid = grid2
+  pos = pos2
+  seen = grid.map { -1 }
+  q = Deque(Pnt).new
+  boxes = Array(Pnt).new
+  moves.each_char.with_index do |c, iter|
+    if c == '<' || c == '>'
+      dir = c == '<' ? Pnt[0, -1] : Pnt[0, 1]
+      oth = pos + dir
+      while grid[oth] == '[' || grid[oth] == ']'
+        oth += dir
+      end
+      if grid[oth] == '.'
+        pos += dir
+        box = oth
+        while box != pos
+          grid[box] = grid[box - dir]
+          box -= dir
+        end
+        grid[pos.i][pos.j] = '.'
+      end
+    elsif c == '^' || c == 'v'
+      dir = c == '^' ? Pnt[-1, 0] : Pnt[1, 0]
+      case grid[pos + dir]
+      when '.' then pos += dir
+      when '#' then nil
+      else
+        boxes.clear
+        q.clear
+        q << (grid[pos + dir] == '[' ? pos + dir : pos + dir + Pnt::Left)
+        result = while box = q.pop?
+          boxes << box
+          oth = box + dir
+          break false if grid[oth] == '#' || grid[oth.right] == '#'
+          oth.j -= 1 if grid[oth] == ']'
+          if grid[oth] == '[' && seen[oth] < iter
+            seen[oth] = iter
+            q << oth
+          end
+
+          oth = box + dir + Pnt::Right
+          break false if grid[oth] == '#'
+          if grid[oth] == '[' && seen[oth] < iter
+            seen[oth] = iter
+            q << oth
+          end
+        end
+
+        if result != false
+          boxes.each do |pos|
+            grid[pos] = '.'
+            grid[pos.right] = '.'
+          end
+          boxes.each do |pos|
+            grid[pos + dir] = '['
+            grid[pos + dir + Pnt::Right] = ']'
+          end
+          pos += dir
+        end
+      end
+    end
+  end
+
+  part2 = grid.sum(0_i64) { |i, j, c| c == '[' ? 100 * i + j : 0 }
 
   {part1, part2}
 end
