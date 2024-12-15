@@ -1,0 +1,183 @@
+# Copyright (c) 2024 Frank Fischer <frank-fischer@shadow-soft.de>
+#
+# This program is free software: you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see  <http://www.gnu.org/licenses/>
+
+struct Pnt
+  property i : Int32
+  property j : Int32
+
+  def initialize(@i : Int32, @j : Int32)
+  end
+
+  def self.[](i : Int32, j : Int32)
+    new(i, j)
+  end
+
+  def <=>(other : Pnt)
+    i == other.i && j == other.j
+  end
+
+  def +(other : Pnt)
+    Pnt.new(i + other.i, j + other.j)
+  end
+
+  def -(other : Pnt)
+    Pnt.new(i - other.i, j - other.j)
+  end
+
+  Up    = Pnt[-1, 0]
+  Right = Pnt[0, 1]
+  Down  = Pnt[1, 0]
+  Left  = Pnt[0, -1]
+end
+
+def run_day15(input) : {Int64, Int64}
+  lines = input.each_line
+  grid = lines.take_while(&.empty?.!).map(&.chars).to_a
+  moves = lines.join
+
+  pos = Pnt[0, 0]
+  n = 0
+  grid.each_with_index do |row, i|
+    if j = row.index('@')
+      pos = Pnt[i, j]
+    end
+    n += row.count(&.== 'O')
+  end
+
+  grid[pos.i][pos.j] = '.'
+
+  pos2 = Pnt[pos.i, pos.j * 2]
+  grid2 = grid.map do |row|
+    row.flat_map do |c|
+      case c
+      when '#' then {'#', '#'}.each
+      when 'O' then {'[', ']'}.each
+      else          {'.', '.'}.each
+      end
+    end
+  end
+
+  moves.each_char do |c|
+    dir = case c
+          when '^' then Pnt.new(-1, 0)
+          when '>' then Pnt.new(0, +1)
+          when 'v' then Pnt.new(+1, 0)
+          when '<' then Pnt.new(0, -1)
+          else          next
+          end
+    oth = pos + dir
+    while grid[oth.i][oth.j] == 'O'
+      oth += dir
+    end
+    if grid[oth.i][oth.j] == '.'
+      pos += dir
+      grid[pos.i][pos.j] = '.'
+      grid[oth.i][oth.j] = 'O' if oth != pos
+    end
+  end
+
+  part1 = 0_i64
+  grid.each_with_index do |row, i|
+    row.each_with_index do |c, j|
+      part1 += 100 * i + j if c == 'O'
+    end
+  end
+
+  grid = grid2
+  pos = pos2
+  seen = Array.new(grid.size) { |i| Array.new(grid[i].size, -1) }
+  q = Array(Pnt).new(n, Pnt[0, 0])
+  n = 0
+  grid[pos.i][pos.j] = '@'
+  grid[pos.i][pos.j] = '.'
+  moves.each_char do |c|
+    n += 1
+    if c == '<' || c == '>'
+      dir = c == '<' ? Pnt[0, -1] : Pnt[0, 1]
+      oth = pos + dir
+      while grid[oth.i][oth.j] == '[' || grid[oth.i][oth.j] == ']'
+        oth += dir
+      end
+      if grid[oth.i][oth.j] == '.'
+        pos += dir
+        box = oth
+        while box != pos
+          grid[box.i][box.j] = grid[box.i][box.j - dir.j]
+          box -= dir
+        end
+        grid[pos.i][pos.j] = '.'
+      end
+    elsif c == '^' || c == 'v'
+      dir = c == '^' ? Pnt[-1, 0] : Pnt[1, 0]
+      case grid[pos.i + dir.i][pos.j]
+      when '.'
+        pos += dir
+      when '#'
+        nil
+      else
+        qput = 1
+        qget = 0
+        q[0] = grid[pos.i + dir.i][pos.j] == '[' ? pos + dir : pos + dir + Pnt::Left
+        while qget < qput
+          box = q[qget]
+          qget += 1
+          oth = box + dir
+          if grid[oth.i][oth.j] == '#' || grid[oth.i][oth.j + 1] == '#'
+            qget = -1
+            break
+          end
+          oth.j -= 1 if grid[oth.i][oth.j] == ']'
+          if grid[oth.i][oth.j] == '[' && seen[oth.i][oth.j] < n
+            seen[oth.i][oth.j] = n
+            q[qput] = oth
+            qput += 1
+          end
+
+          oth = box + dir + Pnt::Right
+          if grid[oth.i][oth.j] == '#'
+            qget = -1
+            break
+          end
+          if grid[oth.i][oth.j] == '[' && seen[oth.i][oth.j] < n
+            seen[oth.i][oth.j] = n
+            q[qput] = oth
+            qput += 1
+          end
+        end
+
+        if qget >= 0
+          q.each.first(qput).each do |pos|
+            grid[pos.i][pos.j] = '.'
+            grid[pos.i][pos.j + 1] = '.'
+          end
+          q.each.first(qput).each do |pos|
+            grid[pos.i + dir.i][pos.j] = '['
+            grid[pos.i + dir.i][pos.j + 1] = ']'
+          end
+          pos += dir
+        end
+      end
+    end
+  end
+
+  part2 = 0_i64
+  grid.each_with_index do |row, i|
+    row.each_with_index do |c, j|
+      part2 += 100 * i + j if c == '['
+    end
+  end
+
+  {part1, part2}
+end
