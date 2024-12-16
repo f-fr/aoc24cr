@@ -46,14 +46,25 @@ def run_day16(input) : {Int64, Int64}
 
   all_dists = Array.new(2) { grid.map { |_, _, c| c == '#' ? [] of Int32 : Array.new(4, Int32::MAX) } }
 
-  q = PriQueue({Int32, Pnt, Direction}).new
+  degs = grid.map { 0 }
+  grid.each do |i, j, c|
+    if c != '#'
+      Direction.each do |dir|
+        nxt = step(Pnt[i, j], dir)
+        degs[nxt] += 1
+      end
+    end
+  end
 
-  (0..1).each do |j|
+  q = PriQueue({Int32, Pnt, Direction}).new
+  simple_q = Deque({Int32, Pnt, Direction}).new
+
+  2.times do |j|
     dists = all_dists[j]
     q.push({0, st[j], Direction::Left})
     dists[st[j]][Direction::Left.value] = 0
 
-    while incoming = q.pop?
+    while incoming = (simple_q.shift? || q.pop?)
       d, in_pos, in_dir = incoming
       (1..4).each do |i|
         pos, dir = in_pos, in_dir
@@ -68,7 +79,11 @@ def run_day16(input) : {Int64, Int64}
 
         if grid[step(in_pos, in_dir)] != '#' && d + c < dists[pos][dir.value]
           dists[pos][dir.value] = d + c
-          q.push({d + c, pos, dir})
+          if degs[pos] <= 2
+            simple_q.push({d + c, pos, dir})
+          else
+            q.push({d + c, pos, dir})
+          end
         end
         in_dir = clockwise(in_dir)
       end
