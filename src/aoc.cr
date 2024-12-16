@@ -30,7 +30,11 @@ struct Pnt
   end
 
   def <=>(other : Pnt)
-    i == other.i && j == other.j
+    if i != other.i
+      i <=> other.i
+    else
+      j <=> other.j
+    end
   end
 
   def +(other : Pnt)
