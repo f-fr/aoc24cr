@@ -93,3 +93,61 @@ def run_day16(input) : {Int64, Int64}
 
   {part1, part2}
 end
+
+def run_day16_2(input) : {Int64, Int64}
+  grid = Grid.read(input)
+
+  s = grid.find('S') || raise "No start found"
+  t = grid.find('E') || raise "No end found"
+  st = {s, t}
+
+  q = PriQueue({Int32, Pnt, Direction}).new
+
+  all_dists = Array.new(2) { Hash({Pnt, Direction}, Int32).new(Int32::MAX) }
+
+  (0..1).each do |j|
+    dists = all_dists[j]
+    q.push({0, st[j], Direction::Left})
+    dists[{st[j], Direction::Left}] = 0
+
+    while incoming = q.pop?
+      d, in_pos, in_dir = incoming
+      (1..4).each do |i|
+        pos, dir = in_pos, in_dir
+        case i
+        when 1
+          pos, dir, c = step(pos, dir), invert(dir), 1
+        when 3
+          c = 0
+        else
+          c = pos != t ? 1000 : 0
+        end
+
+        if grid[step(in_pos, in_dir)] != '#' && d + c < (dists[{pos, dir}]? || Int32::MAX)
+          dists[{pos, dir}] = d + c
+          q.push({d + c, pos, dir})
+        end
+        in_dir = clockwise(in_dir)
+      end
+    end
+  end
+
+  part1 = Int32::MAX.to_i64
+  Direction.each { |dir| part1 = {part1, all_dists[0][{t, dir}].to_i64}.min }
+  part2 = 0_i64
+  grid.each do |i, j, c|
+    next if c == '#'
+    Direction.each do |dir|
+      next if (x = all_dists[0][{Pnt[i, j], dir}]) > part1
+      next if (y = all_dists[1][{Pnt[i, j], dir}]) > part1
+      if x + y == part1
+        if grid[i, j] != 'O'
+          grid[i, j] = 'O'
+          part2 += 1
+        end
+      end
+    end
+  end
+
+  {part1, part2}
+end
