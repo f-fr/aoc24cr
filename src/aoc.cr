@@ -149,6 +149,13 @@ class Grid(T)
     data = lines.take_while(&.empty?.!).map(&.chars).to_a
     Grid.new(data)
   end
+
+  def to_s(io : IO)
+    each_row do |row|
+      row.each { |c| io << c }
+      io << "\n"
+    end
+  end
 end
 
 def gcd_ext(a, b)
