@@ -21,7 +21,7 @@ require "./days/*"
 
 abstract class DayRunner
   abstract def day : Int32
-  abstract def run(input : IO) : {Int64, Int64}
+  abstract def run(input : IO)
 end
 
 days = [] of DayRunner
@@ -41,7 +41,7 @@ days = [] of DayRunner
         {{version}}.to_i
       end
 
-      def run(input : IO) : {Int64, Int64}
+      def run(input : IO)
         {{name}}(input)
       end
     end
@@ -61,10 +61,10 @@ days.each do |runner|
     mem = Benchmark.memory {
       time = Benchmark.measure { result = runner.run(file) }.real
     }
-    puts "day: %2d %-3s part1: %16d  part2: %16d  time:%.3f  mem:%8.2fK" % {
+    puts "day: %2d %-3s part1: %17s  part2: %16s  time:%.3f  mem:%8.2fK" % {
       runner.day,
       runner.version == 1 ? "" : "v#{runner.version}",
-      result[0], result[1],
+      result[0].to_s, result[1].to_s,
       time,
       mem / 1024,
     }

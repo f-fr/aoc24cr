@@ -27,7 +27,8 @@ require "../src/days/*"
         if File.basename(testname) =~ /test_part(\d+)/
           part = $1.to_i
           File.open(testname, "r") do |f|
-            expected = f.read_line[/^EXPECTED:\s*(\d+)\s*$/,1].to_i64
+            expected = f.read_line[/^EXPECTED:\s*(\S+)\s*$/,1]
+            expected = expected.to_i64? || expected
             result = {{name}}(f)
             it "should correctly solve part #{part}" do
               result[part-1].should eq(expected)
@@ -35,9 +36,9 @@ require "../src/days/*"
           end
         else
           File.open(testname, "r") do |f|
-            next unless f.read_line =~ /^EXPECTED:\s*(\d+)\s+(\d+)\s*$/
-            expected1 = $1.to_i64
-            expected2 = $2.to_i64
+            next unless f.read_line =~ /^EXPECTED:\s*(\S+)\s+(\S+)\s*$/
+            expected1 = $1.to_i64? || $1
+            expected2 = $2.to_i64? || $2
             result1, result2 = {{name}}(f)
             it "should correctly solve part 1" do
               result1.should eq(expected1)
