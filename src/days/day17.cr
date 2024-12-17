@@ -20,7 +20,6 @@ private class VM
   property c : Int64 = 0
 
   def initialize(@prg : Array(UInt8))
-    @ip = 0
   end
 
   private def combo(op : UInt8) : Int64
@@ -34,7 +33,7 @@ private class VM
   end
 
   def run(stop_at_jump = false, & : UInt8 ->)
-    ip = @ip
+    ip = 0
     prg = @prg
     while ip < prg.size
       case prg[ip]
@@ -55,12 +54,6 @@ private class VM
       end
       ip += 2
     end
-  end
-
-  def run
-    outputs = [] of UInt8
-    run { |value| outputs << value }
-    outputs
   end
 end
 
@@ -90,9 +83,8 @@ def run_day17(input : IO) : {String, Int64}
   vm.b = reg_b
   vm.c = reg_c
 
-  part1 = vm.run.join(",")
-  part2 = 0_i64
-  part2 = solve_part2(vm)[0] if reg_a != 729 # skip in test case for part1
+  part1 = String.build { |str| vm.run { |value| str << value << ',' } }.chomp(',')
+  part2 = solve_part2(vm)[0]? || 0_i64
 
   {part1, part2}
 end
