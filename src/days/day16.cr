@@ -44,7 +44,7 @@ def run_day16(input) : {Int64, Int64}
   t = grid.find('E') || raise "No end found"
   st = {s, t}
 
-  all_dists = Array.new(2) { grid.map { |_, _, c| c == '#' ? [] of Int32 : Array.new(4, Int32::MAX) } }
+  all_dists = Array.new(2) { Array.new(4) { grid.map { Int32::MAX } } }
 
   degs = grid.map { 0 }
   grid.each do |i, j, c|
@@ -62,7 +62,7 @@ def run_day16(input) : {Int64, Int64}
   2.times do |j|
     dists = all_dists[j]
     q.push({0, st[j], Direction::Left})
-    dists[st[j]][Direction::Left.value] = 0
+    dists[Direction::Left.value][st[j]] = 0
 
     while incoming = (simple_q.shift? || q.pop?)
       d, in_pos, in_dir = incoming
@@ -77,8 +77,8 @@ def run_day16(input) : {Int64, Int64}
           c = pos != t ? 1000 : 0
         end
 
-        if grid[step(in_pos, in_dir)] != '#' && d + c < dists[pos][dir.value]
-          dists[pos][dir.value] = d + c
+        if grid[step(in_pos, in_dir)] != '#' && d + c < dists[dir.value][pos]
+          dists[dir.value][pos] = d + c
           if degs[pos] <= 2
             simple_q.push({d + c, pos, dir})
           else
@@ -90,13 +90,13 @@ def run_day16(input) : {Int64, Int64}
     end
   end
 
-  part1 = all_dists[0][t].min.to_i64
+  part1 = all_dists[0].each.min_of(&.[t]).to_i64
   part2 = 0_i64
   grid.each do |i, j, c|
     next if c == '#'
     Direction.each do |dir|
-      next if (x = all_dists[0][i, j][dir.value]) > part1
-      next if (y = all_dists[1][i, j][dir.value]) > part1
+      next if (x = all_dists[0][dir.value][i, j]) > part1
+      next if (y = all_dists[1][dir.value][i, j]) > part1
       if x + y == part1
         if grid[i, j] != 'O'
           grid[i, j] = 'O'
