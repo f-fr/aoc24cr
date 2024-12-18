@@ -179,3 +179,82 @@ def run_day18_2(input : IO) : {Int32, String}
 
   {part1 || 0, part2}
 end
+
+def run_day18_3(input : IO) : {Int32, String}
+  nums = input.each_line.map(&.split(',').map(&.to_i.+ 1)).map { |p| Pnt[p[0], p[1]] }.to_a
+  is_test = nums.all? { |n| n.i <= 7 && n.j <= 7 }
+  n, m, npart1 = is_test ? {7, 7, 12} : {71, 71, 1024}
+
+  # add boundary
+  n += 2
+  m += 2
+
+  s = Pnt[1, 1]
+  t = Pnt[n - 2, m - 2]
+
+  grid = Grid.new(n, m) do |i, j|
+    if i == 0 || i == n - 1 || j == 0 || j == m - 1
+      0 # boundary is blocked immediately
+    else
+      Int32::MAX
+    end
+  end
+
+  dist = Grid.new(n, m) { Int32::MAX }
+
+  nums.each_with_index do |pos, i|
+    grid[pos] = i + 1
+  end
+
+  q = Deque(Pnt).new
+
+  # for part1 do bfs
+  q << s
+  dist[s] = 0
+  while pos = q.shift?
+    break if pos == t
+    d = dist[pos]
+    {Pnt::Up, Pnt::Right, Pnt::Down, Pnt::Left}.each do |dir|
+      nxt = pos + dir
+      if d + 1 < dist[nxt] && grid[nxt] > npart1
+        q << nxt
+        dist[nxt] = d + 1
+      end
+    end
+  end
+  part1 = dist[t]
+
+  # for part2 go backwards, possible removing tiles if stuck
+  q.clear
+  q << s
+  dist.fill(Int32::MAX)
+  dist[s] = 0
+  seen = Grid.new(n, m) { false }
+  i = nums.size
+  loop do
+    while pos = q.shift?
+      if pos == t
+        part2 = "#{nums[i].i - 1},#{nums[i].j - 1}"
+        return {part1 || 0, part2}
+      end
+
+      d = dist[pos]
+      {Pnt::Up, Pnt::Right, Pnt::Down, Pnt::Left}.each do |dir|
+        nxt = pos + dir
+        if d + 1 < dist[nxt]
+          dist[nxt] = d + 1
+          if grid[nxt] > i
+            q << nxt
+          else
+            seen[nxt] = true
+          end
+        end
+      end
+    end
+    i -= 1
+    until seen[nums[i]]
+      i -= 1
+    end
+    q << nums[i]
+  end
+end
