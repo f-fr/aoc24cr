@@ -123,7 +123,7 @@ else
   tblbeg = tblend - 1
 
   # skip empty lines and total time
-  while tblbeg > 0 && (readme[tblbeg].strip.empty? || readme[tblbeg].starts_with?(/\s*Total time:/))
+  while tblbeg > 0 && (readme[tblbeg].strip.empty? || readme[tblbeg].starts_with?(/\s*Total time/))
     tblbeg -= 1
   end
 
