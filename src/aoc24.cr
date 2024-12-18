@@ -69,20 +69,9 @@ end
 
 day = ARGV.shift?.try(&.to_i)
 
-if table = refresh_table ? String::Builder.new : nil
-  line = "| day | version | %-17s | %-15s | time (ms)| mem (kb) |" % {"part1", "part2"}
-  table << "  " << line << "\n"
-  table << "  |" << line.split('|', remove_empty: true).map_with_index do |s, i|
-    if i <= 1
-      ":" + "-" * (s.size - 2) + ":"
-    else
-      "-" * (s.size - 1) + ":"
-    end
-  end.join('|') << "|\n"
-end
-
+# run all days and collect results
 times = Hash(Int32, Float64).new(Float64::INFINITY)
-days.each do |runner|
+results = days.compact_map do |runner|
   next unless day.nil? || runner.day == day
   next unless version.nil? || runner.version == version
   File.open("input/%02d/input1.txt" % {runner.day}, "r") do |file|
@@ -92,30 +81,33 @@ days.each do |runner|
       time = Benchmark.measure { result = runner.run(file) }.real
     }
 
-    unless table
-      puts "day: %2d %-3s part1: %17s  part2: %16s  time:%.3f  mem:%8.2fK" % {
-        runner.day,
-        runner.version == 1 ? "" : "v#{runner.version}",
-        result[0].to_s, result[1].to_s,
-        time,
-        mem / 1024,
-      }
-    else
-      table << "  | %3d | %7d | %17s | %15s | %8.3f | %8.2f |\n" % {
-        runner.day,
-        runner.version,
-        result[0].to_s, result[1].to_s,
-        time,
-        mem / 1024,
-      }
-    end
-
     times.update(runner.day) { |v| {v, time}.min }
+
+    {
+      runner.day.to_s,
+      runner.version.to_s,
+      result[0].to_s, result[1].to_s,
+      "%.3f" % {time},
+      "%.3f" % {mem / 1024},
+    }
   end
 end
+
 total_time = times.each_value.sum
 
-unless table
+# output the results
+table_header = {"day", "version", "part1", "part2", "time (ms)", "mem (kb)"}
+ws = results.map(&.map(&.size))
+ws << table_header.map(&.size) if refresh_table
+ws = ws.transpose.map { |col| {3, col.max}.max }
+
+unless refresh_table
+  fmt = "day: %#{ws[0]}s %-#{ws[1]}s part1: %#{ws[2]}s  part2: %#{ws[3]}s  time: %#{ws[4]}s  mem: %#{ws[5]}sK\n"
+  results.each do |res|
+    res = res.to_a
+    res[1] = res[1] == "1" ? "" : "v#{res[1]}"
+    printf fmt, res
+  end
   puts "Total time: %.3f" % {total_time}
 else
   cpu = if Crystal::TARGET_TRIPLE.starts_with?("x86_64")
@@ -123,23 +115,22 @@ else
         else
           "RasPi2 ARMv7 Processor rev 5"
         end
-  table << "\n  Total time: %.3f\n\n" % {total_time}
-  table << "  **#{cpu}**"
 
   readme = File.read_lines("README.md")
-  tblend = readme.index(&.strip.starts_with?("**#{cpu}"))
+  re_table = /\s*\*\*#{Regex.literal(cpu)}/
+  tblend = readme.index(&.strip.starts_with?(re_table))
   raise "No table found in README.md" unless tblend
   tblbeg = tblend - 1
 
   # skip empty lines and total time
-  while tblbeg > 0 && (readme[tblbeg].strip.empty? || readme[tblbeg].strip.starts_with?("Total time:"))
+  while tblbeg > 0 && (readme[tblbeg].strip.empty? || readme[tblbeg].starts_with?(/\s*Total time:/))
     tblbeg -= 1
   end
 
   # skip table
-  if tblbeg > 0 && readme[tblbeg].strip.starts_with?('|')
+  if tblbeg > 0 && readme[tblbeg].starts_with?(/\s*\|/)
     tblbeg -= 1
-    while tblbeg > 0 && readme[tblbeg].strip.starts_with?('|')
+    while tblbeg > 0 && readme[tblbeg].starts_with?(/\s*\|/)
       tblbeg -= 1
     end
     tblbeg += 1
@@ -151,10 +142,29 @@ else
     tblend += 1
   end
 
-  # remove old table except for caption
-  readme.delete_at(tblbeg..tblend)
+  File.open("README.md", "w") do |new_readme|
+    # write part above table
+    readme.each.first(tblbeg).each { |l| new_readme.puts l }
 
-  # insert new table
-  readme.insert_all(tblbeg, table.to_s.split("\n"))
-  File.write("README.md", readme.join("\n"))
+    fmt = "  | " + ws.map { |w| "%#{w}s" }.join(" | ") + "|\n"
+    # write table header
+    new_readme.printf fmt, table_header
+    new_readme << "  "
+    ws.each_with_index do |w, i|
+      new_readme << "|" << (i <= 1 ? ':' : '-')
+      w.times { new_readme << '-' }
+      new_readme << ':'
+    end
+    new_readme << "\n"
+
+    # write table header
+    results.each { |res| new_readme.printf fmt, res }
+
+    # write table footer
+    new_readme.printf "\n  Total time (ms): %.3f\n\n" % {total_time}
+    new_readme.puts "  **#{cpu}**"
+
+    # write rest of file
+    readme.each.skip(tblend + 1).each { |l| new_readme.puts l }
+  end
 end
