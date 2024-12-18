@@ -107,6 +107,11 @@ class Grid(T)
     @data[0]?.try(&.size) || 0
   end
 
+  def fill(value : T)
+    @data.each(&.fill(value))
+    self
+  end
+
   def find(value : T) : Pnt?
     each do |i, j, c|
       return Pnt[i, j] if c == value
