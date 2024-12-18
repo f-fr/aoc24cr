@@ -25,15 +25,15 @@ def run_day18(input : IO) : {Int32, String}
   s = Pnt[1, 1]
   t = Pnt[n - 2, m - 2]
 
-  grid = Grid(Int32).new(n, m) do |i, j|
+  grid = Grid.new(n, m) do |i, j|
     if i == 0 || i == n - 1 || j == 0 || j == m - 1
       0 # boundary is blocked immediately
     else
       Int32::MAX
     end
   end
-  dist = Grid(Int32).new(n, m) { 0 }
-  seen = Grid(Int32).new(n, m) { -1 }
+  dist = Grid.new(n, m) { 0 }
+  seen = Grid.new(n, m) { -1 }
 
   nums.each_with_index do |pos, i|
     grid[pos[0] + 1][pos[1] + 1] = i + 1

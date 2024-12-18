@@ -67,8 +67,8 @@ class Grid(T)
   include Iterable({Int32, Int32, T})
   include Enumerable({Int32, Int32, T})
 
-  def initialize(n : Int32, m : Int32, & : (Int32, Int32) -> T)
-    @data = Array.new(n) { |i| Array.new(m) { |j| yield i, j } }
+  def self.new(n : Int32, m : Int32, & : (Int32, Int32) -> T)
+    Grid.new(Array.new(n) { |i| Array.new(m) { |j| yield i, j } })
   end
 
   def initialize(n : Int32, m : Int32, value : T)
