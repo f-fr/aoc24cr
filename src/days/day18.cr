@@ -99,14 +99,14 @@ private class UnionFind
   def union(p : Pnt, q : Pnt) : Void
     p = find(@components[p])
     q = find(@components[q])
-    return if p === q
+    return if p == q
     p, q = q, p if p.depth < q.depth
     q.parent = p
     p.depth = {p.depth, q.depth + 1}.max
   end
 
   def connected?(p : Pnt, q : Pnt)
-    find(@components[p]) === find(@components[q])
+    find(@components[p]) == find(@components[q])
   end
 end
 
