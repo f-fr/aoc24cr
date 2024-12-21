@@ -17,7 +17,7 @@ enum Button
   Up; Right; Down; Left; Act
 end
 
-def try_press(but : Button, bctrl : Button) : Button?
+private def try_ctrl_press(but : Button, bctrl : Button) : Button?
   pos = case but
         in Button::Up    then Pnt[0, 1]
         in Button::Right then Pnt[1, 2]
@@ -25,6 +25,7 @@ def try_press(but : Button, bctrl : Button) : Button?
         in Button::Left  then Pnt[1, 0]
         in Button::Act   then Pnt[0, 2]
         end
+
   case bctrl
   in Button::Up    then pos = pos.up
   in Button::Right then pos = pos.right
@@ -46,20 +47,73 @@ def try_press(but : Button, bctrl : Button) : Button?
   end
 end
 
-def try_press(pos : Pnt, bctrl : Button) : Pnt?
-  p = pos
+# try press number 0..9 or 10 (is 'A')
+private def try_num_press(but : Int32, bctrl : Button) : Int32?
+  pos = case but
+        when  0 then Pnt[3, 1]
+        when  1 then Pnt[2, 0]
+        when  2 then Pnt[2, 1]
+        when  3 then Pnt[2, 2]
+        when  4 then Pnt[1, 0]
+        when  5 then Pnt[1, 1]
+        when  6 then Pnt[1, 2]
+        when  7 then Pnt[0, 0]
+        when  8 then Pnt[0, 1]
+        when  9 then Pnt[0, 2]
+        when 10 then Pnt[3, 2]
+        else         raise "Invalid button: #{but}"
+        end
+
   case bctrl
-  in Button::Up    then p = pos.up
-  in Button::Right then p = pos.right
-  in Button::Down  then p = pos.down
-  in Button::Left  then p = pos.left
-  in Button::Act   then return pos
+  in Button::Up    then pos = pos.up
+  in Button::Right then pos = pos.right
+  in Button::Down  then pos = pos.down
+  in Button::Left  then pos = pos.left
+  in Button::Act   then return but
   end
-  if 0 <= p.i <= 3 && 0 <= p.j <= 2 && p != Pnt[3, 0]
-    p
+
+  case pos
+  when Pnt[3, 1] then 0
+  when Pnt[2, 0] then 1
+  when Pnt[2, 1] then 2
+  when Pnt[2, 2] then 3
+  when Pnt[1, 0] then 4
+  when Pnt[1, 1] then 5
+  when Pnt[1, 2] then 6
+  when Pnt[0, 0] then 7
+  when Pnt[0, 1] then 8
+  when Pnt[0, 2] then 9
+  when Pnt[3, 2] then 10
   else
     nil
   end
+end
+
+# - q the priority queue (for reuse)
+# - s, t the start and end positions on the current pad
+# - dists the distances grid (for reuse)
+# - costs[b1, b2] the cost (on the control pad) for pressing b2 after b1
+# - &: (but, bctrl) -> but? the callback returning the new button position
+#      when the current position is `but` and `bctrl` is pressed on the control pad,
+#      or `nil` if invalid
+private def solve(q, s, t, dists, costs, & : (Int32, Button) -> Int32?)
+  q.clear
+  q.push({0_i64, s, Button::Act})
+  dists.fill(Int64::MAX)
+  dists[s, Button::Act.value] = 1
+  while cur = q.pop?
+    d, cur_b, cur_bctrl = cur
+    break if cur_b == t && cur_bctrl == Button::Act
+    Button.each do |nxt_bctrl|
+      c = costs[cur_bctrl.value, nxt_bctrl.value]
+      nxt_b = yield(cur_b, nxt_bctrl) || next
+      if d + c < dists[nxt_b, nxt_bctrl.value]
+        dists[nxt_b, nxt_bctrl.value] = d + c
+        q.push({d + c, nxt_b, nxt_bctrl})
+      end
+    end
+  end
+  dists[t, Button::Act.value]
 end
 
 def run_day21(input)
@@ -71,32 +125,16 @@ def run_day21(input)
   cost = Grid(Int64).new(n, n) { 1_i64 }
   nxtcost = cost.map { Int64::MAX }
 
-  q = PriQueue({Int64, Button, Button}).new
+  q = PriQueue({Int64, Int32, Button}).new
   dists = cost.map { Int64::MAX }
-
-  num_q = PriQueue({Int64, Pnt, Button}).new
-  num_dists = Hash({Pnt, Button}, Int64).new(Int64::MAX)
+  num_dists = Grid.new(11, 5) { Int64::MAX }
 
   1.upto(25) do |k|
     Button.each do |b1|
       Button.each do |b2|
-        q.clear
-        q.push({0_i64, b1, Button::Act})
-        dists.fill(Int64::MAX)
-        dists[b1.value, Button::Act.value] = 1
-        while cur = q.pop?
-          d, cur_b, cur_bctrl = cur
-          break if cur_b == b2 && cur_bctrl == Button::Act
-          Button.each do |nxt_bctrl|
-            c = cost[cur_bctrl.value, nxt_bctrl.value]
-            nxt_b = try_press(cur_b, nxt_bctrl) || next
-            if d + c < dists[nxt_b.value, nxt_bctrl.value]
-              dists[nxt_b.value, nxt_bctrl.value] = d + c
-              q.push({d + c, nxt_b, nxt_bctrl})
-            end
-          end
+        nxtcost[b1.value, b2.value] = solve(q, b1.value, b2.value, dists, cost) do |but, bctrl|
+          try_ctrl_press(Button.new(but), bctrl).try(&.value)
         end
-        nxtcost[b1.value, b2.value] = dists[b2.value, Button::Act.value]
       end
     end
 
@@ -106,44 +144,16 @@ def run_day21(input)
 
     lines.each do |line|
       sum = 0_i64
-      cur = {Pnt[3, 2], Button::Act}
+      s = 10
       line.each_char do |ch|
         t = case ch
-            when '0' then Pnt[3, 1]
-            when '1' then Pnt[2, 0]
-            when '2' then Pnt[2, 1]
-            when '3' then Pnt[2, 2]
-            when '4' then Pnt[1, 0]
-            when '5' then Pnt[1, 1]
-            when '6' then Pnt[1, 2]
-            when '7' then Pnt[0, 0]
-            when '8' then Pnt[0, 1]
-            when '9' then Pnt[0, 2]
-            when 'A' then Pnt[3, 2]
-            else          raise "Invalid character #{ch}"
+            when '0'..'9' then ch.to_i
+            when 'A'      then 10
+            else               raise "Invalid character #{ch}"
             end
 
-        num_q.clear
-        num_q.push({0_i64, cur[0], cur[1]})
-        num_dists.clear
-        num_dists[cur] = 0
-        while num_cur = num_q.pop?
-          d, cur_pos, cur_bctrl = num_cur
-          if cur_pos == t && cur_bctrl == Button::Act
-            sum += d
-            cur = {cur_pos, cur_bctrl}
-            break
-          end
-
-          Button.each do |nxt_bctrl|
-            c = cost[cur_bctrl.value, nxt_bctrl.value]
-            nxt_pos = try_press(cur_pos, nxt_bctrl) || next
-            if d + c < num_dists[{nxt_pos, nxt_bctrl}]
-              num_dists[{nxt_pos, nxt_bctrl}] = d + c
-              num_q.push({d + c, nxt_pos, nxt_bctrl})
-            end
-          end
-        end
+        sum += solve(q, s, t, num_dists, cost, &->try_num_press(Int32, Button))
+        s = t
       end
 
       if k == 2
