@@ -67,41 +67,42 @@ def run_day21(input)
   part1 = 0_i64
   part2 = 0_i64
 
-  cost = Array.new(5) { Array(Int64).new(5, 1) }
-  nxtcost = Array.new(5) { Array(Int64).new(5, Int64::MAX) }
+  n = Button.values.size
+  cost = Grid(Int64).new(n, n) { 1_i64 }
+  nxtcost = cost.map { Int64::MAX }
 
   q = PriQueue({Int64, Button, Button}).new
-  dists = Hash({Button, Button}, Int64).new(Int64::MAX)
+  dists = cost.map { Int64::MAX }
+
+  num_q = PriQueue({Int64, Pnt, Button}).new
+  num_dists = Hash({Pnt, Button}, Int64).new(Int64::MAX)
 
   1.upto(25) do |k|
     Button.each do |b1|
       Button.each do |b2|
         q.clear
         q.push({0_i64, b1, Button::Act})
-        dists.clear
-        dists[{b1, Button::Act}] = 1
+        dists.fill(Int64::MAX)
+        dists[b1.value, Button::Act.value] = 1
         while cur = q.pop?
           d, cur_b, cur_bctrl = cur
           break if cur_b == b2 && cur_bctrl == Button::Act
           Button.each do |nxt_bctrl|
-            c = cost[cur_bctrl.value][nxt_bctrl.value]
+            c = cost[cur_bctrl.value, nxt_bctrl.value]
             nxt_b = try_press(cur_b, nxt_bctrl) || next
-            if d + c < dists[{nxt_b, nxt_bctrl}]
-              dists[{nxt_b, nxt_bctrl}] = d + c
+            if d + c < dists[nxt_b.value, nxt_bctrl.value]
+              dists[nxt_b.value, nxt_bctrl.value] = d + c
               q.push({d + c, nxt_b, nxt_bctrl})
             end
           end
         end
-        nxtcost[b1.value][b2.value] = dists[{cur_b, cur_bctrl}]
+        nxtcost[b1.value, b2.value] = dists[b2.value, Button::Act.value]
       end
     end
 
     cost, nxtcost = nxtcost, cost
 
     next unless k == 2 || k == 25
-
-    num_q = PriQueue({Int64, Pnt, Button}).new
-    num_dists = Hash({Pnt, Button}, Int64).new(Int64::MAX)
 
     lines.each do |line|
       sum = 0_i64
@@ -135,7 +136,7 @@ def run_day21(input)
           end
 
           Button.each do |nxt_bctrl|
-            c = cost[cur_bctrl.value][nxt_bctrl.value]
+            c = cost[cur_bctrl.value, nxt_bctrl.value]
             nxt_pos = try_press(cur_pos, nxt_bctrl) || next
             if d + c < num_dists[{nxt_pos, nxt_bctrl}]
               num_dists[{nxt_pos, nxt_bctrl}] = d + c
