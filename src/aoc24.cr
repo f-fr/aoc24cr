@@ -96,7 +96,7 @@ end
 total_time = times.each_value.sum
 
 # output the results
-table_header = {"day", "version", "part1", "part2", "time (ms)", "mem (kb)"}
+table_header = {"day", "version", "part1", "part2", "time (s)", "mem (kb)"}
 ws = results.map(&.map(&.size))
 ws << table_header.map(&.size) if refresh_table
 ws = ws.transpose.map { |col| {3, col.max}.max }
@@ -161,7 +161,7 @@ else
     results.each { |res| new_readme.printf fmt, res }
 
     # write table footer
-    new_readme.printf "\n  Total time (ms): %.3f\n\n" % {total_time}
+    new_readme.printf "\n  Total time (s): %.3f\n\n" % {total_time}
     new_readme.puts "  **#{cpu}**"
 
     # write rest of file
