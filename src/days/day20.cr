@@ -36,7 +36,13 @@ def run_day20(input)
     dists
   end
 
-  diff1, diff2 = grid.n <= 16 ? {1, 50} : {100, 100}
+  diff1, diff2 = if grid.n <= 16
+                   {1, 50}
+                 elsif grid.n <= 50
+                   {1, 30}
+                 else
+                   {100, 100}
+                 end
 
   part1, part2 = 0, 0
 
