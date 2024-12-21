@@ -24,6 +24,10 @@ class PriQueue(T)
     @heap.empty?
   end
 
+  def clear
+    @heap.clear
+  end
+
   def size : Int32
     @heap.size
   end
